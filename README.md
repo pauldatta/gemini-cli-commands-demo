@@ -1,70 +1,55 @@
-# Gemini CLI Sub-Agent Orchestration Demo
+# Gemini CLI: Prompt-Driven Sub-Agent Orchestrator
 
-This project is a demonstration of a prompt-native sub-agent orchestration system built for the Gemini CLI. It showcases how complex tasks can be delegated to specialized AI agents whose entire lifecycle is managed through CLI commands and filesystem state, without requiring external process management scripts.
+This project is a proof-of-concept demonstrating a sub-agent orchestration system built entirely within the Gemini CLI using its native features. It uses a filesystem-as-state architecture, managed by a suite of prompt-driven custom commands, to orchestrate complex, asynchronous tasks performed by specialized AI agents.
 
-## Core Concept: Asynchronous State-via-Filesystem
+## Core Concepts
 
-The fundamental principle of this system is that an agent's task is not a synchronous operation but a **state file on disk** that controls a **background process**. An orchestrator, invoked by user commands, manages the lifecycle of these tasks.
+1.  **Filesystem-as-State**: The entire state of the system (task queue, plans, logs) is stored in structured directories on the filesystem, making it transparent and easily debuggable. There are no external databases or process managers.
 
--   **Task Creation**: A task is initiated as a JSON file with a `pending` status.
--   **Execution**: The orchestrator launches the corresponding agent as a background process, updates the task file to `running`, and records the Process ID (PID).
--   **Completion**: The background agent, upon finishing its task, creates a `.done` sentinel file.
--   **Reconciliation**: The orchestrator detects this `.done` file, marks the task as `complete`, and cleans up the sentinel file.
+2.  **Prompt-Driven Commands**: The logic for the orchestrator is not written in a traditional programming language. Instead, it's defined in a series of prompts within `.toml` files, which create new, project-specific commands in the Gemini CLI (e.g., `/agents:start`).
 
-This entire system lives within the `.gemini/agents/` directory, which includes dedicated subdirectories for:
--   `tasks`: Contains the JSON state files for each task and the `.done` sentinel files.
--   `plans`: Holds Markdown files that agents can use for long-term planning.
--   `logs`: Stores the output logs from each agent's background process.
--   `workspace`: A dedicated directory where agents can create, modify, and read files.
+3.  **Asynchronous Agents**: Sub-agents are launched as background processes. The orchestrator tracks them via their Process ID (PID) and reconciles their status by checking for a sentinel `.done` file upon their completion.
 
 ## Architecture
 
-The system consists of two main components:
+-   **Orchestrator**: A set of custom Gemini CLI commands (`/agents:*`) that manage the entire lifecycle of agent tasks, from creation to completion.
+-   **Sub-Agents**: Specialized Gemini CLI extensions, each with a unique persona and a constrained set of capabilities (e.g., `coder-agent`, `reviewer-agent`).
 
-1.  **The Orchestrator**: A set of prompt-driven commands (`/agents:*`) that manage the agent task lifecycle.
-2.  **Sub-Agents**: Specialized Gemini CLI extensions, each with a unique "persona" and a constrained set of capabilities (e.g., a `coder-agent` for writing code, a `reviewer-agent` for analyzing it). Each agent is designed to run autonomously in the background and signal its completion.
+## Directory Structure
+
+The entire system is contained within the `.gemini/` directory. This image shows the structure of the `agents` and `commands` directories that power the system.
+
+![Project Folder Structure](media/project-folder-structure.png)
+
+-   `agents/`: Contains the definitions for the sub-agents and the workspace where they operate.
+    -   `tasks/`: Contains the JSON state files for each task and `.done` sentinel files.
+    -   `plans/`: Holds Markdown files for agents' long-term planning.
+    -   `logs/`: Stores the output logs from each agent's background process.
+    -   `workspace/`: A dedicated directory where agents can create and modify files.
+-   `commands/`: Contains the `.toml` files that define the custom `/agents` commands.
 
 ## Commands
 
-The system is operated through the `/agents:*` command suite.
+-   `/agents:start <agent_name> "<prompt>"`: Queues a new task by creating a JSON file in the `tasks` directory.
+-   `/agents:run`: Executes the oldest pending task by launching the corresponding agent as a background process.
+-   `/agents:status`: Reports the status of all tasks. It first reconciles any completed tasks by checking for `.done` files.
+-   `/agents:type`: Lists the available agent extensions.
 
-### `/agents:start <agent_name> "<prompt>"`
+## Example Workflow
 
-Queues a new task for a sub-agent by creating a task file in `.gemini/agents/tasks/` with a `pending` status.
-
-### `/agents:run`
-
-Finds the oldest `pending` task and starts it. The command's prompt generates the necessary shell script to:
-1.  Update the task's status to `running`.
-2.  Execute the sub-agent as a **background process**.
-3.  Capture the agent's **PID** and update the task file with it.
-
-### `/agents:status`
-
-Provides a report of all tasks. Before displaying the status, it performs a **reconciliation step**:
-1.  It scans for `running` tasks.
-2.  For each one, it checks for a corresponding `.done` file.
-3.  If a `.done` file is found, it marks the task as `complete` and removes the sentinel file.
-
-### `/agents:type`
-
-Lists the available agent types (extensions) that can be used.
-
-## Example Workflow: Building a GitHub Repo Viewer
-
-1.  **Queue a Task**: Ask the `coder-agent` to build a simple web application.
+1.  **Queue a Task**:
     ```bash
     gemini /agents:start coder-agent "in a folder, use html/css/js (nicely designed) to build an app that looks at github.com/pauldatta and is a one-stop view of the repos and what they have been built for (public repos)"
     ```
     **Output**: `Task task_20250726T183100Z created for agent 'coder-agent' and is now pending.`
 
-2.  **Run the Orchestrator**: Execute the next pending task in the background.
+2.  **Run the Orchestrator**:
     ```bash
     gemini /agents:run
     ```
     **Output**: `Orchestrator started task task_20250726T183100Z (PID: 13539) in the background.`
 
-3.  **Check the Status**: While the agent is running, you can see its status.
+3.  **Check the Status (While Running)**:
     ```bash
     gemini /agents:status
     ```
@@ -73,7 +58,8 @@ Lists the available agent types (extensions) that can be used.
     |---|---|---|---|---|---|
     | task_20250726T183100Z | coder-agent | running | 2025-07-26T18:31:00Z | 13539 | in a folder, use html/css/js... |
 
-4.  **Verify Completion**: After the agent has finished, check the status again. The `/agents:status` command will first reconcile the completed task.
+4.  **Check the Status (After Completion)**:
+    After the agent is finished, the next run of `/agents:status` will first reconcile the task and then display the final state.
     ```bash
     gemini /agents:status
     ```
@@ -83,7 +69,11 @@ Lists the available agent types (extensions) that can be used.
     |---|---|---|---|---|---|
     | task_20250726T183100Z | coder-agent | complete | 2025-07-26T18:31:00Z | 13539 | in a folder, use html/css/js... |
 
-At this point, the `coder-agent` has created the application in the `.gemini/agents/workspace/github-repo-viewer/` directory, containing `index.html`, `style.css`, and `script.js`.
+### Final Output
+
+The `coder-agent` successfully creates a web application in the `.gemini/agents/workspace/github-repo-viewer` directory. Here is a screenshot of the final running application:
+
+![GitHub Repo Viewer Screenshot](media/github-repo-viewer.png)
 
 ---
 

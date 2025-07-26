@@ -19,7 +19,7 @@ This project is a proof-of-concept demonstrating a sub-agent orchestration syste
 
 The entire system is contained within the `.gemini/` directory. This image shows the structure of the `agents` and `commands` directories that power the system.
 
-![Project Folder Structure](media/project-folder-structure.png)
+<img src="media/project-folder-structure.png" alt="Project Folder Structure" width="500"/>
 
 -   `agents/`: Contains the definitions for the sub-agents and the workspace where they operate.
     -   `tasks/`: Contains the JSON state files for each task and `.done` sentinel files.

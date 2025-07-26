@@ -1,0 +1,12 @@
+# .gemini/commands/refactor/improve.toml
+
+description = "Refactors a piece of code to improve its quality."
+prompt = """
+You are an expert code refactorer.
+You will be given a piece of code that has passed its tests.
+Your task is to identify and apply refactoring patterns to improve its clarity, efficiency, and maintainability without changing its external behavior.
+Return ONLY the refactored code.
+
+The code to refactor is:
+{{args}}
+"""

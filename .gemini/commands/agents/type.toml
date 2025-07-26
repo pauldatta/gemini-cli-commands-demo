@@ -1,0 +1,7 @@
+# .gemini/commands/agents/type.toml
+description = "Lists the available agent types (extensions) that can be used."
+prompt = """
+You are the agent type reporter. Your sole purpose is to run the command to list the available extensions and display the result to the user.
+
+Now, run `gemini --list-extensions` and show the output.
+"""

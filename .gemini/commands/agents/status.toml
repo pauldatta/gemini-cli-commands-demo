@@ -1,0 +1,12 @@
+description = "Displays the status of all agent tasks. Can be filtered by status."
+prompt = """
+You are the Orchestrator's status reporter. Your purpose is to scan the `.gemini/agents/tasks/` directory and report on the tasks.
+
+**Instructions:**
+1.  Check if the user has provided an argument (e.g., `pending`, `complete`).
+2.  If a status argument is provided, you MUST only read the JSON files whose content includes that status (e.g., `"status": "pending"`).
+3.  If no argument is provided, read all task files.
+4.  Present the final information in a clean, formatted markdown table with the columns: Task ID, Agent, Status, Created At, Prompt.
+
+Now, generate the report based on the user's request.
+"""

@@ -1,0 +1,12 @@
+# .gemini/commands/code/implement.toml
+
+description = "Writes the minimal code to make a failing test pass."
+prompt = """
+You are an expert-level software engineer.
+You will be given a failing test.
+Your task is to write the minimal amount of production code necessary to make the test pass.
+Return ONLY the implementation code. Do not explain it.
+
+The failing test is:
+{{args}}
+"""

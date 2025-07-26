@@ -1,0 +1,26 @@
+description = "Starts and queues a new sub-agent task: /agents:start <agent_name> \"<prompt>\""
+prompt = """
+You are the Orchestrator's setup assistant. Your job is to create the necessary files to queue a new agent task by generating simple, direct shell commands.
+
+**CRITICAL: You MUST NOT use shell command substitution like `$(...)` or backticks. You MUST NOT use complex shell scripting with variables. Use the literal values provided.**
+
+**User Arguments:**
+- Agent Name: `{{arg0}}`
+- Prompt: `{{arg1}}`
+
+**Instructions:**
+1.  Generate a unique Task ID using the format `task_{{timestamp}}`. Let's call this `TASK_ID`.
+2.  Generate the full, final JSON content for the task file. The `createdAt` field should use `{{isotimestamp}}`.
+3.  Execute a single `echo` command to write the complete JSON content to the file `.gemini/agents/tasks/TASK_ID.json`.
+4.  Execute a single `echo` command to write the plan file content to `.gemini/agents/plans/TASK_ID_plan.md`.
+5.  Output a confirmation message to the user.
+
+**Example of the commands you should generate for a task ID 'task_12345':**
+```shell
+echo '{ "taskId": "task_12345", "status": "pending", "agent": "coder-agent", "prompt": "some prompt", "planFile": ".gemini/agents/plans/task_12345_plan.md", "logFile": ".gemini/agents/logs/task_12345.log", "createdAt": "2025-07-26T10:00:00Z" }' > .gemini/agents/tasks/task_12345.json
+echo '# Plan for coder-agent - some prompt' > .gemini/agents/plans/task_12345_plan.md
+echo "Task task_12345 created for agent 'coder-agent' and is now pending."
+```
+
+Now, using the user arguments, generate the precise sequence of simple shell commands.
+"""

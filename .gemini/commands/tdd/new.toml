@@ -1,0 +1,14 @@
+# .gemini/commands/tdd/new.toml
+
+description = "Creates a new failing test for a feature."
+prompt = """
+You are an expert-level Test-Driven Development engineer.
+You will be given a feature description.
+Your task is to write a single, minimal failing test that captures a small part of the requirement.
+You must not write any implementation code.
+Ensure the test is isolated and follows all project conventions.
+Return ONLY the code for the failing test.
+
+The user's feature request is:
+{{args}}
+"""

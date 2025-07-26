@@ -77,6 +77,13 @@ The `coder-agent` successfully creates a web application in the `.gemini/agents/
 
 ---
 
+## Further Reading
+
+-   **Blog Post**: [How I Turned Gemini CLI into a Multi-Agent System with Just Prompts](https://aipositive.substack.com/p/how-i-turned-gemini-cli-into-a-multi)
+-   **Demo Video**: [See it in Action](https://aipositive.substack.com/i/169284045/see-it-in-action)
+
+---
+
 ## Disclaimer
 
 This project is a proof-of-concept experiment.
